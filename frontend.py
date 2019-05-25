@@ -20,6 +20,7 @@ frontend = Blueprint('frontend', __name__)
 nav.register_element('frontend_top', Navbar(
     View('KAIST Clubs', '.index'),
     View('Home', '.index'),
+    View('Club Registration', '.clubreg'),
     # View('Debug-Info', 'debug.debug_root'),
     # Subgroup(
     #     'Docs',
@@ -36,6 +37,10 @@ nav.register_element('frontend_top', Navbar(
     # Text('Using Flask-Bootstrap {}'.format(FLASK_BOOTSTRAP_VERSION)),
     ))
 
+
+@frontend.route('/clubreg')
+def clubreg():
+    return render_template('clubreg.html')
 
 # Our index-page just shows a quick explanation. Check out the template
 # "templates/index.html" documentation for more details.
