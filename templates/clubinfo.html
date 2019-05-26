@@ -1,0 +1,16 @@
+<html>
+
+<body>
+  <div class "container">
+    <h2> {{clubname}} </h2>
+     <div class = "container">
+     	{{division}}<br>
+     	{{Objective}}<br>
+     	{{hours}}<br>
+     	{% for event in events %}
+        	<th>{{event[0]}}</th>
+        {%endfor%}
+      </div>
+  </div>
+  </body>
+</html>
