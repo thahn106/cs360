@@ -1,0 +1,20 @@
+<html>
+<head>
+
+  </head>
+
+<body>
+  <div class "container">
+    <h2> CLUBS </h2>
+     <div class = "container">
+      {%for club in clubs %}
+         <a class= "button" href='/clubinfo?club={{club[0]}}' style="font-size:x-large;">{{club[0]}}</a>
+      {%endfor%}
+      <h2> EVENTS </h2>
+      {%for events in events %}
+         <a class= "button" href='/eventinfo?event={{events[0]}}' style="font-size:x-large;">{{event1[0]}}</a>
+      {%endfor%}
+     </div>
+  </div>
+  </body>
+</html>

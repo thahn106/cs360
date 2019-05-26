@@ -16,11 +16,11 @@
   <div>
     <h2>Club Registration</h2>
     <div class="container">
-    <form class="needs-validation" novalidate>
+    <form class="clubreg" action="/clubreg" method="post">
     <div class="row">
       <div class="col-md-4 mb-3">
         <label for="validationCustom01">Club Name</label>
-        <input type="text" class="form-control" id="validationCustom01" placeholder="Club Name" required>
+        <input name = "clubname" type="text" class="form-control" id="validationCustom01" placeholder="Club Name" required>
         <div class="valid-feedback">
           Looks good!
         </div>
@@ -28,7 +28,7 @@
       <div class="col-md-2 mb-3"></div>
       <div class="col-md-3 mb-3">
         <label for="validationCustom04">Club Division</label>
-        <select class="form-control" required>
+        <select name= "division" class="form-control" required>
           <option value="">Open this select menu</option>
           <option value="1">Culture</option>
           <option value="2">Performing Art</option>
@@ -49,7 +49,7 @@
     <div class="row">
       <div class="col-md-4 mb-3">
         <label for="validationCustom02">Club Hours</label>
-        <input type="text" class="form-control" id="validationCustom02" placeholder="Club hours" value="Monday 19:00~21:00" required>
+        <input name= clubhours "type="text" class="form-control" id="validationCustom02" placeholder="Club hours" value="Monday 19:00~21:00" required>
         <div class="valid-feedback">
           Looks good!
         </div>
@@ -57,7 +57,7 @@
       <div class="col-md-2 mb-3"></div>
       <div class="col-md-3 mb-3">
         <label for="validationCustom03">Club Room</label>
-        <input type="text" class="form-control" id="validationCustom03" placeholder="Club Room" value="E11 201" required>
+        <input name= "location" type="text" class="form-control" id="validationCustom03" placeholder="Club Room" value="E11 201" required>
         <div class="valid-feedback">
           Looks good!
         </div>
@@ -66,7 +66,7 @@
     <div class="row">
       <div class="col-md-12 mb-3">
       <label for="Objective">Club Objective</label>
-      <textarea class="form-control" rows="5" id="Objective"></textarea>
+      <textarea name= "Objective" class="form-control" rows="5" id="Objective"></textarea>
       </div>
     </div>
     <div class="row">

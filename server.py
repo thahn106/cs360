@@ -1,60 +1,34 @@
-# This contains our frontend; since it is a bit messy to use the @app.route
-# decorator style when using application factories, all of our routes are
-# inside blueprints. This is the front-facing blueprint.
-#
-# You can find out more about blueprints at
-# http://flask.pocoo.org/docs/blueprints/
-
-from flask import Blueprint, render_template, flash, redirect, url_for, request
-from flask_bootstrap import __version__ as FLASK_BOOTSTRAP_VERSION
-from flask_nav.elements import Navbar, View, Subgroup, Link, Text, Separator
-from markupsafe import escape
-
-from nav import nav
+from flask import Flask, render_template
+from flask import request
+from flask_bootstrap import Bootstrap
+from flask_nav import Nav
 
 import os
-import pymysql
+import MySQLdb
 import datetime
 
-frontend = Blueprint('frontend', __name__)
 
-db = pymysql.connect(host = "34.85.123.237", user = "root", passwd = "password", db = "kaistclubdb")
+db = MySQLdb.connect(host = "34.85.123.237", user = "root", passwd = "password", db = "kaistclubdb")
 cur = db.cursor()
+nav = Nav()
+app = Flask(__name__)
+bootstrap = Bootstrap(app)
 
-# We're adding a navbar as well through flask-navbar. In our example, the
-# navbar has an usual amount of Link-Elements, more commonly you will have a
-# lot more View instances.
-nav.register_element('frontend_top', Navbar(
-    View('KAIST Clubs', '.index'),
-    View('Home', '.index'),
-    View('Club Registration', '.clubreg'),
-    View('New Event', '.newevent'),
-    # View('Debug-Info', 'debug.debug_root'),
-    # Subgroup(
-    #     'Docs',
-    #     Link('Flask-Bootstrap', 'http://pythonhosted.org/Flask-Bootstrap'),
-    #     Link('Flask-AppConfig', 'https://github.com/mbr/flask-appconfig'),
-    #     Link('Flask-Debug', 'https://github.com/mbr/flask-debug'),
-    #     Separator(),
-    #     Text('Bootstrap'),
-    #     Link('Getting started', 'http://getbootstrap.com/getting-started/'),
-    #     Link('CSS', 'http://getbootstrap.com/css/'),
-    #     Link('Components', 'http://getbootstrap.com/components/'),
-    #     Link('Javascript', 'http://getbootstrap.com/javascript/'),
-    #     Link('Customize', 'http://getbootstrap.com/customize/'), ),
-    # Text('Using Flask-Bootstrap {}'.format(FLASK_BOOTSTRAP_VERSION)),
-    ))
 
-@frontend.route('/eventretrieval')
+@app.route('/')
+def index():
+    return render_template("index.html")
+
+@app.route('/eventretrieval')
 def eventretrieval():
     return render_template("eventretrieval.html")
 
-@frontend.route('/clubreg', methods=['GET'])
+@app.route('/clubreg', methods=['GET'])
 def clubreg():
     #getinfo()
-    return render_template("clubreg.html")
+    return render_template("clubreg.html") 
 
-@frontend.route('/clubreg', methods=['POST'])
+@app.route('/clubreg', methods=['POST'])
 def getinfo():
     print(request.form)
     name = request.form['clubname']
@@ -62,7 +36,7 @@ def getinfo():
     location = request.form['location']
     department = request.form['division']
     objective = request.form['Objective']
-
+    
     ind = int(department)
     departments = ["Culture", "Performing Art", "Creative Arts", "Band Music", "Vocal Music", "Instrumental Music", "Society", "Religion", "Ball Sport", "Life Sport", "Science & Engineering", "Liberal Arts"]
 
@@ -75,7 +49,7 @@ def getinfo():
     db.commit()
     return render_template("index.html")
 
-@frontend.route('/division')
+@app.route('/division')
 def division():
     select_stmt = (
         "SELECT * FROM division"
@@ -84,7 +58,7 @@ def division():
     divs = cur.fetchall()
     return render_template("division.html", divs = divs)
 
-@frontend.route('/clubretrieval', methods=['GET'])
+@app.route('/clubretrieval', methods=['GET'])
 def clubretrieval():
     div = (request.args.get('div'))
     try:
@@ -94,25 +68,25 @@ def clubretrieval():
         cur.execute(select_stmt)
         clubs = cur.fetchall()
         print(clubs)
-
+        
         select_stmt1 = (
-        "CREATE VIEW events AS SELECT 'EventID' FROM hostdiv where Division='%s'" %(div, )
+        "CREATE VIEW events AS SELECT EventID FROM hostdiv where Division='%s'" %(div, )
         )
         select_stmt2 = (
         "SELECT Name FROM event NATURAL JOIN events"
         )
-
+        
         delete_stmt = (
         "DROP VIEW events"
         )
         cur.execute(select_stmt1)
-        cur.execute(select_stmt2)
+        cur.execute(select_stmt2)   
         event1 = cur.fetchall()
         print(event1)
         cur.execute(delete_stmt)
 
         return render_template("clubretrieval.html", div = div, clubs = clubs, events = event1)
-    except pymysql.OperationalError:
+    except MySQLdb.OperationalError:
         try:
             select_stmt = (
                 "SELECT * FROM club where Dname='%s'" %(div, )
@@ -121,10 +95,10 @@ def clubretrieval():
             clubs = cur.fetchall()
             print(clubs)
             return render_template("clubretrieval.html", div = div, clubs = clubs)
-        except pymysql.OperationalError:
+        except MySQLdb.OperationalError:
             return render_template("index.html")
-
-@frontend.route('/eventinfo', methods=['GET'])
+        
+@app.route('/eventinfo', methods=['GET'])
 def eventinfo():
     event = (request.args.get('event'))
     select_stmt = (
@@ -135,12 +109,12 @@ def eventinfo():
     eventname = info[0][0]
     datetime = info[0][1]
     location = info[0][2]
-
+    
     return render_template("eventinfo.html", event = event, eventname= eventname, datetime = datetime, location = location)
 #cur.execute(insert_stmt, data)
+  
 
-
-@frontend.route('/clubinfo', methods=['GET'])
+@app.route('/clubinfo', methods=['GET'])
 def clubinfo():
     club = (request.args.get('club'))
     select_stmt = (
@@ -152,32 +126,29 @@ def clubinfo():
     division = info[0][5]
     Objective = info[0][4]
     hours = info[0][1]
-
+    
     select_stmt1 = (
         "CREATE VIEW events AS SELECT EventID FROM hostclub where Club='%s'" %(clubname, )
     )
     select_stmt2 = (
         "SELECT Name FROM event NATURAL JOIN events"
         )
-
+    
     delete_stmt = (
         "DROP VIEW events"
         )
 
     cur.execute(select_stmt1)
-    cur.execute(select_stmt2)
+    cur.execute(select_stmt2)   
     event1 = cur.fetchall()
     print(event1)
     cur.execute(delete_stmt)
     return render_template("clubinfo.html", club = club, clubname= clubname, division = division, Objective = Objective, hours = hours, events = event1)
+#cur.execute(insert_stmt, data)
 
 
-@frontend.route('/newevent')
-def newevent():
-    return render_template('newevent.html')
+#db.commit()
+#db.close()
 
-# Our index-page just shows a quick explanation. Check out the template
-# "templates/index.html" documentation for more details.
-@frontend.route('/')
-def index():
-    return render_template('index.html')
+if __name__ == '__main__':
+    app.run()

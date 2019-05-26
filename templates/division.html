@@ -1,0 +1,16 @@
+<html>
+<head>
+
+  </head>
+
+<body>
+  <div class "container">
+    <h2> DIVISIONS </h2>
+     <div class = "container">
+     {% for div in divs %}
+         <a class= "button" href='/clubretrieval?div={{div[0]}}' style="font-size:x-large;">{{div[0]}}</a><br>
+      {%endfor%}
+     </div>
+  </div>
+  </body>
+</html>
