@@ -10,7 +10,7 @@ from flask_bootstrap import __version__ as FLASK_BOOTSTRAP_VERSION
 from flask_nav.elements import Navbar, View, Subgroup, Link, Text, Separator
 from markupsafe import escape
 
-from .nav import nav
+from nav import nav
 
 frontend = Blueprint('frontend', __name__)
 
@@ -21,6 +21,7 @@ nav.register_element('frontend_top', Navbar(
     View('KAIST Clubs', '.index'),
     View('Home', '.index'),
     View('Club Registration', '.clubreg'),
+    View('New Event', '.newevent'),
     # View('Debug-Info', 'debug.debug_root'),
     # Subgroup(
     #     'Docs',
@@ -41,6 +42,10 @@ nav.register_element('frontend_top', Navbar(
 @frontend.route('/clubreg')
 def clubreg():
     return render_template('clubreg.html')
+
+@frontend.route('/newevent')
+def newevent():
+    return render_template('newevent.html')
 
 # Our index-page just shows a quick explanation. Check out the template
 # "templates/index.html" documentation for more details.

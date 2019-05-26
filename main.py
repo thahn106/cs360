@@ -2,8 +2,8 @@ from flask import Flask
 from flask_appconfig import AppConfig
 from flask_bootstrap import Bootstrap
 
-from .frontend import frontend
-from .nav import nav
+from frontend import frontend
+from nav import nav
 
 
 def create_app(configfile=None):
@@ -32,3 +32,8 @@ def create_app(configfile=None):
     nav.init_app(app)
 
     return app
+
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=8080, debug=True)
