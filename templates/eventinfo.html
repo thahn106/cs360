@@ -1,6 +1,8 @@
-<html>
+{%- extends "base.html" %}
 
-<body>
+{% import "bootstrap/utils.html" as utils %}
+
+{% block content %}
   <div class "container">
     <h2> {{eventname}} </h2>
      <div class = "container">
@@ -9,4 +11,4 @@
       </div>
   </div>
   </body>
-</html>
+{%- endblock %}

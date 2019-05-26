@@ -1,6 +1,8 @@
-<html>
+{%- extends "base.html" %}
 
-<body>
+{% import "bootstrap/utils.html" as utils %}
+
+{% block content %}
   <div class "container">
     <h2> {{clubname}} </h2>
      <div class = "container">
@@ -12,5 +14,4 @@
         {%endfor%}
       </div>
   </div>
-  </body>
-</html>
+{%- endblock %}

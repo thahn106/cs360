@@ -1,16 +1,20 @@
-<html>
-<head>
+{%- extends "base.html" %}
 
-  </head>
+{% import "bootstrap/utils.html" as utils %}
 
-<body>
+{% block content %}
   <div class "container">
     <h2> DIVISIONS </h2>
-     <div class = "container">
-     {% for div in divs %}
-         <a class= "button" href='/clubretrieval?div={{div[0]}}' style="font-size:x-large;">{{div[0]}}</a><br>
-      {%endfor%}
-     </div>
-  </div>
+      <div class = "container">
+        {% for div in divs %}
+          <div class="card border-primary mb-3" style="width: 18rem;">
+            <div class="card-body">
+              <h5 class="card-title">{{div[0]}}</h5>
+              <!-- <a class= "button" href='/clubretrieval?div={{div[0]}}' style="font-size:x-large;">{{div[0]}}</a><br> -->
+            </div>
+          </div>
+        {%endfor%}
+      </div>
+    </div>
   </body>
-</html>
+{%- endblock %}
