@@ -1,5 +1,8 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, request
+from flask import Flask, session
 from markupsafe import escape
+
+from functools import wraps
 
 
 import os
@@ -14,10 +17,10 @@ cur = db.cursor()
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if g.user is None:
-            return redirect(url_for('login', next=request.url))
+        if 'username' not in session:
+            return redirect(url_for('frontend.login', next=request.url))
         return f(*args, **kwargs)
-    return decorated_functions
+    return decorated_function
 
 @frontend.context_processor
 def div_dict():
@@ -32,6 +35,19 @@ def div_dict():
 def signup_get():
     return render_template("signup.html")
 
+# We're adding a navbar as well through flask-navbar. In our example, the
+# navbar has an usual amount of Link-Elements, more commonly you will have a
+# lot more View instances.
+# nav.register_element('frontend_top', Navbar(
+#     View('KAIST Clubs', '.index'),
+#     View('Home', '.index'),
+#     View('Club Registration', '.clubreg'),
+#     View('New Event', '.newevent'),
+#     ))
+@frontend.route('/')
+def index():
+    return render_template('index.html')
+
 @frontend.route('/eventretrieval')
 def eventretrieval():
     return render_template("eventretrieval.html")
@@ -39,6 +55,54 @@ def eventretrieval():
 @frontend.route('/clubreg', methods=['GET'])
 def clubreg():
     return render_template("clubreg.html")
+
+@frontend.route('/login', methods=['GET', 'POST'])
+def login():
+    if 'username' in session:
+        return redirect(url_for('frontend.index'))
+    error = None
+    try:
+        if request.method == 'POST':
+            print("here")
+            username_form = request.form['username']
+            print("jotto")
+            select_stmt = ("SELECT * FROM admin WHERE ID= '%s'" %(username_form))
+            print(select_stmt)
+            cur.execute(select_stmt)
+            print("shibal")
+            table = cur.fetchone()
+            print(table)
+
+        if table == None:
+            print("jokka")
+            raise Exception('Invalid username')
+
+        password_form = request.form['password']
+        select_stmt1 = ("SELECT PW FROM admin WHERE ID= '%s'" %(username_form))
+        print(select_stmt1)
+        cur.execute(select_stmt1)
+
+        for row in cur.fetchall():
+            print("shipsaekki")
+            #if md5(password_form).hexdigest() == row[0]:
+            if password_form == row[0]:
+                print("ertyui")
+                session['username'] = request.form['username']
+                return redirect(url_for('frontend.index'))
+
+        raise Exception('Invalid password')
+    except Exception as e:
+        print("jottoshibal")
+        error = str(e)
+
+    return render_template('login.html', error = error)
+
+@frontend.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('frontend.index'))
+
+@frontend.route('/signup')
 
 @frontend.route('/clubreg', methods=['POST'])
 def getinfo():
@@ -59,11 +123,13 @@ def getinfo():
     return render_template("index.html")
 
 @frontend.route('/newmember', methods=['GET'])
+@login_required
 def memberreg():
     clubname = (request.args.get('clubname'))
     return render_template("newmember.html", clubname = clubname)
 
 @frontend.route('/newmember', methods=['POST'])
+@login_required
 def newmember():
     clubname = request.form['clubname']
     studentid = request.form['sid']
@@ -213,6 +279,3 @@ def newevent():
 
 # Our index-page just shows a quick explanation. Check out the template
 # "templates/index.html" documentation for more details.
-@frontend.route('/')
-def index():
-    return render_template('index.html')
