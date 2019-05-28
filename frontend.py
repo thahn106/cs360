@@ -56,13 +56,41 @@ def newmember():
         if(student[1] == studentid):
             here = True
             break
-
+        
+    if(not(here)):
+        #student id is not there
+        return render_template("index.html")
+    
+    here = False  
+    select_stmt = (
+        "SELECT * FROM member"
+    )
+    cur.execute(select_stmt)
+    members = cur.fetchall()
+    
+    
+    for member in members:
+        if(member[0] == studentid):
+            if(member[1] == clubname):
+                here = True
+                break
+    
+    if(here):
+        #member is already there
+        return render_template("index.html")
+        
     insert_stmt = (
         "INSERT INTO member (SID, Club) VALUES (%s, %s)"
         )
+    
     data = (studentid, clubname)
     cur.execute(insert_stmt)
+    db.commit()
     
+    #successfully signed up
+    return render_template("index.html")
+
+
     
 
 @frontend.route('/clubreg', methods=['POST'])
