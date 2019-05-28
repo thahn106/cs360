@@ -11,6 +11,14 @@ frontend = Blueprint('frontend', __name__)
 db = pymysql.connect(host = "34.85.123.237", user = "root", passwd = "password", db = "kaistclubdb")
 cur = db.cursor()
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if g.user is None:
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_functions
+
 @frontend.context_processor
 def div_dict():
     select_stmt = (
@@ -19,6 +27,10 @@ def div_dict():
     cur.execute(select_stmt)
     divs = cur.fetchall()
     return dict(divs=divs)
+
+@frontend.route('/signup')
+def signup_get():
+    return render_template("signup.html")
 
 @frontend.route('/eventretrieval')
 def eventretrieval():
