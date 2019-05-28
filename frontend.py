@@ -6,8 +6,8 @@
 # http://flask.pocoo.org/docs/blueprints/
 
 from flask import Blueprint, render_template, flash, redirect, url_for, request
+from flask import Flask, session
 from markupsafe import escape
-
 
 import os
 import pymysql
@@ -18,6 +18,7 @@ frontend = Blueprint('frontend', __name__)
 db = pymysql.connect(host = "34.85.123.237", user = "root", passwd = "password", db = "kaistclubdb")
 cur = db.cursor()
 
+
 # We're adding a navbar as well through flask-navbar. In our example, the
 # navbar has an usual amount of Link-Elements, more commonly you will have a
 # lot more View instances.
@@ -27,6 +28,12 @@ cur = db.cursor()
 #     View('Club Registration', '.clubreg'),
 #     View('New Event', '.newevent'),
 #     ))
+@frontend.route('/')
+def index():
+    if 'username' not in session:
+        return redirect(url_for('frontend.login'))
+    username_session = escape(session['username']).capitalize()
+    return render_template('index.html', session_user_name=username_session)
 
 @frontend.route('/eventretrieval')
 def eventretrieval():
@@ -90,8 +97,53 @@ def newmember():
     #successfully signed up
     return render_template("index.html")
 
+@frontend.route('/login', methods=['GET', 'POST'])
+def login():
+    if 'username' in session:
+        return redirect(url_for('frontend.index'))
+    error = None
+    try:
+        if request.method == 'POST':
+            print("here")
+            username_form = request.form['username']
+            print("jotto")
+            select_stmt = ("SELECT COUNT(1) FROM admin WHERE ID= '%s'" %(username_form))            
+            print(select_stmt)
+            cur.execute(select_stmt)
+            print("shibal")
+            table = cur.fetchone()
+            print(table)
+        
+        if table == None:
+            print("jokka")
+            raise Exception('Invalid username')
+        
+        password_form = request.form['password']
+        select_stmt1 = ("SELECT PW FROM admin WHERE ID= '%s'" %(username_form))            
+        print(select_stmt1)
+        cur.execute(select_stmt1)
+        
+        for row in cur.fetchall():
+            print("shipsaekki")
+            #if md5(password_form).hexdigest() == row[0]:
+            if password_form == row[0]:
+                print("ertyui")
+                session['username'] = request.form['username']
+                return redirect(url_for('frontend.index'))
+            
+        raise Exception('Invalid password')
+    except Exception as e:
+        print("jottoshibal")
+        error = str(e)
+        
+    return render_template('login.html', error = error)
 
-    
+@frontend.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('frontend.index'))
+
+@frontend.route('/signup')
 
 @frontend.route('/clubreg', methods=['POST'])
 def getinfo():
@@ -217,6 +269,3 @@ def newevent():
 
 # Our index-page just shows a quick explanation. Check out the template
 # "templates/index.html" documentation for more details.
-@frontend.route('/')
-def index():
-    return render_template('index.html')
