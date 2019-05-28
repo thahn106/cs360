@@ -16,8 +16,14 @@
     <form class="clubreg" action="/newmember" method="post">
     <div class="row">
       <div class="col-md-6 mb-3">
-        <label for="validationCustom01">Club Name</label>
-          <input name = "clubname" type="text" class="form-control" id="validationCustom01" placeholder="Club Name" value="{{ clubname }}" required>
+        <label for="validationCustom04">Club Name</label>
+        <select name= "clubname" class="form-control selectpicker" data-live-search="true" required>
+          <option value="">Open this select menu</option>
+          {% for club in myclubs %}
+            <option value = "{{club[0]}}" data-tokens="{{club[0]}}">{{club[0]}}</option>
+          {% endfor %}
+        </select>
+        <div class="invalid-feedback">Example invalid custom select feedback</div>
       </div>
       <div class="col-md-4 mb-3">
         <label for="validationCustom02">Student ID</label>

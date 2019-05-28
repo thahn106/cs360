@@ -30,10 +30,14 @@ def update_dict():
         )
     cur.execute(select_stmt)
     divs = cur.fetchall()
+    clubs=""
     user = ""
     if 'username' in session:
-        user = escape(session['username']).capitalize()
-    return dict(divs=divs, user=user)
+        user = session['username']
+        select_stmt = ("SELECT * FROM club WHERE ManagerID= '%s'" %(user))
+        cur.execute(select_stmt)
+        clubs = cur.fetchall()
+    return dict(divs=divs, user=user, myclubs=clubs)
 
 @frontend.route('/')
 def index():
@@ -145,11 +149,12 @@ def getinfo():
     location = request.form['location']
     department = request.form['division']
     objective = request.form['Objective']
+    username = session['username'];
 
     insert_stmt = (
     "INSERT INTO club (Name, MeetingHours, ManagerID, Location, Objective, Dname) VALUES (%s, %s, %s, %s, %s, %s)"
     )
-    data = (name, hours, '00000', location, objective, department)
+    data = (name, hours, username, location, objective, department)
 
     cur.execute(insert_stmt, data)
     db.commit()
@@ -157,13 +162,12 @@ def getinfo():
 
 @frontend.route('/newmember', methods=['GET'])
 @login_required
-def memberreg():
-    clubname = (request.args.get('clubname'))
-    return render_template("newmember.html", clubname = clubname)
+def newmember_get():
+    return render_template("newmember.html")
 
 @frontend.route('/newmember', methods=['POST'])
 @login_required
-def newmember():
+def newmember_post():
     clubname = request.form['clubname']
     studentid = request.form['sid']
     select_stmt = (
@@ -198,8 +202,8 @@ def newmember():
     if(here):
         return render_template("newmember.html", clubname=clubname, sid=studentid, err="Student already registered.")
 
-        "INSERT INTO member (SID, Club) VALUES (%s, %s)"
     insert_stmt = (
+    "INSERT INTO member (SID, Club) VALUES (%s, %s)"
         )
 
     data = (studentid, clubname)

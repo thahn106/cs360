@@ -22,9 +22,15 @@
     {% block navbar %}
       {% include 'nav.html' with context %}
     {%- endblock navbar %}
-
+    <main role="main" class="flex-shrink-0">
     {% block content -%}
     {%- endblock content %}
+    </main>
+    <div class="footer navbar navbar-light bg-light fixed-bottom">
+      <div class="container">
+        <span class="text-muted">CS360 Spring 2019 - Team 8</span>
+      </div>
+    </div>
 
     {% block scripts %}
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
