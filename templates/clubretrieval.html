@@ -1,16 +1,42 @@
 {%- extends "base.html" %}
 
+
+{% block head %}
+{{super()}}
+<style>
+  a.custom-card,
+  a.custom-card:hover {
+  color: inherit;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-  <div class "container">
-    <h2> CLUBS </h2>
-     <div class = "container">
+<div class="container">
+  <h2>CLUBS</h2>
+  <div class = "container">
+    <div class="row">
       {%for club in clubs %}
-         <a class= "button" href='/clubinfo?club={{club[0]}}' style="font-size:x-large;">{{club[0]}}</a>
+      <div class="col-md-4">
+        <div class="card border-dark mb-3">
+          <h3>{{club[0]}}</h3>
+          <p><strong>Meeting Hours:</strong> {{club[1]}}</p>
+          <p><strong>Club Room:</strong> {{club[2]}}</p>
+          <p>{{club[3]}}</p>
+          <div class="row">
+            <div class="col-md-6"></div>
+            <div class="col-md-6">
+              <a class="btn btn-primary" href='/clubinfo?club={{club[0]}}'>Club Page</a>
+            </div>
+          </div>
+        </div>
+      </div>
       {%endfor%}
-      <h2> EVENTS </h2>
-      {%for events in events %}
-         <a class= "button" href='/eventinfo?event={{events[0]}}' style="font-size:x-large;">{{event1[0]}}</a>
-      {%endfor%}
-     </div>
+    </div>
+    <h2> EVENTS </h2>
+    {%for events in events %}
+    <a class= "button" href='/eventinfo?event={{events[0]}}' style="font-size:x-large;">{{event1[0]}}</a>
+    {%endfor%}
   </div>
+</div>
 {%- endblock %}

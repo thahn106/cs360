@@ -4,6 +4,7 @@ from markupsafe import escape
 
 from functools import wraps
 
+from hashlib import md5
 
 import os
 import pymysql
@@ -23,38 +24,20 @@ def login_required(f):
     return decorated_function
 
 @frontend.context_processor
-def div_dict():
+def update_dict():
     select_stmt = (
         "SELECT * FROM division"
         )
     cur.execute(select_stmt)
     divs = cur.fetchall()
-    return dict(divs=divs)
+    user = ""
+    if 'username' in session:
+        user = escape(session['username']).capitalize()
+    return dict(divs=divs, user=user)
 
-@frontend.route('/signup')
-def signup_get():
-    return render_template("signup.html")
-
-# We're adding a navbar as well through flask-navbar. In our example, the
-# navbar has an usual amount of Link-Elements, more commonly you will have a
-# lot more View instances.
-# nav.register_element('frontend_top', Navbar(
-#     View('KAIST Clubs', '.index'),
-#     View('Home', '.index'),
-#     View('Club Registration', '.clubreg'),
-#     View('New Event', '.newevent'),
-#     ))
 @frontend.route('/')
 def index():
     return render_template('index.html')
-
-@frontend.route('/eventretrieval')
-def eventretrieval():
-    return render_template("eventretrieval.html")
-
-@frontend.route('/clubreg', methods=['GET'])
-def clubreg():
-    return render_template("clubreg.html")
 
 @frontend.route('/login', methods=['GET', 'POST'])
 def login():
@@ -63,13 +46,10 @@ def login():
     error = None
     try:
         if request.method == 'POST':
-            print("here")
             username_form = request.form['username']
-            print("jotto")
             select_stmt = ("SELECT * FROM admin WHERE ID= '%s'" %(username_form))
             print(select_stmt)
             cur.execute(select_stmt)
-            print("shibal")
             table = cur.fetchone()
             print(table)
 
@@ -82,11 +62,12 @@ def login():
         print(select_stmt1)
         cur.execute(select_stmt1)
 
+        PW=str(password_form).encode('utf-8')
         for row in cur.fetchall():
-            print("shipsaekki")
-            #if md5(password_form).hexdigest() == row[0]:
-            if password_form == row[0]:
-                print("ertyui")
+            print("checking password")
+            print(md5(PW).hexdigest())
+            print(row[0])
+            if md5(PW).hexdigest() == row[0]:
                 session['username'] = request.form['username']
                 return redirect(url_for('frontend.index'))
 
@@ -102,9 +83,61 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('frontend.index'))
 
-@frontend.route('/signup')
+@frontend.route('/signup', methods=['GET'])
+def signup_get():
+    return render_template("signup.html")
+
+@frontend.route('/signup', methods=['POST'])
+def signup_post():
+    print(request.form)
+    ID = request.form['ID']
+    PW = request.form['PW']
+    Pnumber = request.form['Pnumber']
+    SID = request.form['SID']
+    email = request.form['email']
+    insert_stmt = (
+    "INSERT INTO admin (ID, PW, Pnumber, SID, email) VALUES (%s, %s, %s, %s, %s)"
+    )
+    PW=str(PW).encode('utf-8')
+    print(md5(PW).hexdigest())
+    data = (ID, md5(PW).hexdigest(), Pnumber, SID, email)
+    cur.execute(insert_stmt, data)
+    db.commit()
+    return render_template("signup.html")
+
+@frontend.route('/newstudent', methods=['GET'])
+@login_required
+def newstudent_get():
+    return render_template("newstudent.html")
+
+@frontend.route('/newstudent', methods=['POST'])
+@login_required
+def newstudent_post():
+    print(request.form)
+    Name = request.form['Name']
+    SID = request.form['SID']
+    Department = request.form['Department']
+    insert_stmt = (
+    "INSERT INTO student (Name, SID, Department) VALUES (%s, %s, %s)"
+    )
+    data = (Name, SID, Department)
+    cur.execute(insert_stmt, data)
+    db.commit()
+    return render_template("newstudent.html")
+
+
+
+@frontend.route('/eventretrieval')
+def eventretrieval():
+    return render_template("eventretrieval.html")
+
+@frontend.route('/clubreg', methods=['GET'])
+@login_required
+def clubreg():
+    return render_template("clubreg.html")
 
 @frontend.route('/clubreg', methods=['POST'])
+@login_required
 def getinfo():
     print(request.form)
     name = request.form['clubname']
@@ -165,12 +198,12 @@ def newmember():
     if(here):
         return render_template("newmember.html", clubname=clubname, sid=studentid, err="Student already registered.")
 
-    insert_stmt = (
         "INSERT INTO member (SID, Club) VALUES (%s, %s)"
+    insert_stmt = (
         )
 
     data = (studentid, clubname)
-    cur.execute(insert_stmt)
+    cur.execute(insert_stmt, data)
     db.commit()
 
     return render_template("index.html")
@@ -259,11 +292,11 @@ def clubinfo():
     )
     select_stmt2 = (
         "SELECT Name FROM event NATURAL JOIN events"
-        )
+    )
 
     delete_stmt = (
         "DROP VIEW events"
-        )
+    )
 
     cur.execute(select_stmt1)
     cur.execute(select_stmt2)
@@ -274,6 +307,7 @@ def clubinfo():
 
 
 @frontend.route('/newevent')
+@login_required
 def newevent():
     return render_template('newevent.html')
 

@@ -4,7 +4,7 @@
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarNavDropdown">
-    <ul class="navbar-nav">
+    <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
         <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
       </li>
@@ -20,6 +20,7 @@
           {%endfor%}
         </div>
       </li>
+      {% if user %}
       <li class="nav-item">
         <a class="nav-link" href="/clubreg">Club Registration</a>
       </li>
@@ -29,6 +30,24 @@
       <li class="nav-item">
         <a class="nav-link" href="/newevent">Event Registration</a>
       </li>
+      {% endif %}
+    </ul>
+    <ul class="navbar-nav">
+      {% if user %}
+      <span class="navbar-text" align="right">
+        Logged in as <strong>{{ user }}</strong>
+      </span>
+      <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+      </li>
+      {% else %}
+        <li class="nav-item">
+          <a class="nav-link" href="/login">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/signup">Signup</a>
+        </li>
+      {% endif %}
     </ul>
   </div>
 </nav>

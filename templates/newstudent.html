@@ -1,0 +1,56 @@
+{%- extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <h2>Student Registration</h2>
+  <div class="container">
+    <form class="newstudent" action="/newstudent" method="post">
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label for="field1">SID</label>
+          <input type="text" class="form-control" name="SID" id="field1" placeholder="20190000" required>
+        </div>
+        <div class='col-md-4 mb-3'>
+          <label for="e2" class="col-2 col-form-label">Name</label>
+          <input id="e2" name="Name" type="text" class="form-control"  placeholder="John Smith" >
+        </div>
+        <div class='col-md-4 mb-3'>
+          <label for="Department" class="col-2 col-form-label">Department</label>
+          <input type="text" name="Department" class="form-control"  placeholder="CS" id="Department">
+        </div>
+      </div>
+    <button class="btn btn-primary" type="submit">Submit form</button>
+    </form>
+</div>
+
+  <script>
+  // Example starter JavaScript for disabling form submissions if there are invalid fields
+  (function() {
+  'use strict';
+  window.addEventListener('load', function() {
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.getElementsByClassName('needs-validation');
+    // Loop over them and prevent submission
+    var validation = Array.prototype.filter.call(forms, function(form) {
+      form.addEventListener('submit', function(event) {
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  }, false);
+  })();
+  </script>
+</div>
+{%- endblock %}
+
+{%- block messages %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+  <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+{%- endblock %}
