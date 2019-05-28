@@ -37,6 +37,34 @@ def clubreg():
     #getinfo()
     return render_template("clubreg.html")
 
+@frontend.route('/newmember', methods=['GET'])
+def membreg():
+    clubname = request.args.get('clubname')
+    return render_template("newmember.html", clubname = clubname)
+
+@frontend.route('/newmember', methods=['POST'])
+def newmember():
+    clubname = request.form['clubname']
+    studentid = request.form['sid']
+    select_stmt = (
+        "SELECT * FROM student"
+    )
+    cur.execute(select_stmt)
+    students = cur.fetchall()
+    here = False
+    for student in students:
+        if(student[1] == studentid):
+            here = True
+            break
+
+    insert_stmt = (
+        "INSERT INTO member (SID, Club) VALUES (%s, %s)"
+        )
+    data = (studentid, clubname)
+    cur.execute(insert_stmt)
+    
+    
+
 @frontend.route('/clubreg', methods=['POST'])
 def getinfo():
     print(request.form)
