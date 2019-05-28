@@ -1,10 +1,3 @@
-# This contains our frontend; since it is a bit messy to use the @app.route
-# decorator style when using application factories, all of our routes are
-# inside blueprints. This is the front-facing blueprint.
-#
-# You can find out more about blueprints at
-# http://flask.pocoo.org/docs/blueprints/
-
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from markupsafe import escape
 
@@ -18,15 +11,14 @@ frontend = Blueprint('frontend', __name__)
 db = pymysql.connect(host = "34.85.123.237", user = "root", passwd = "password", db = "kaistclubdb")
 cur = db.cursor()
 
-# We're adding a navbar as well through flask-navbar. In our example, the
-# navbar has an usual amount of Link-Elements, more commonly you will have a
-# lot more View instances.
-# nav.register_element('frontend_top', Navbar(
-#     View('KAIST Clubs', '.index'),
-#     View('Home', '.index'),
-#     View('Club Registration', '.clubreg'),
-#     View('New Event', '.newevent'),
-#     ))
+@frontend.context_processor
+def div_dict():
+    select_stmt = (
+        "SELECT * FROM division"
+        )
+    cur.execute(select_stmt)
+    divs = cur.fetchall()
+    return dict(divs=divs)
 
 @frontend.route('/eventretrieval')
 def eventretrieval():
@@ -34,7 +26,6 @@ def eventretrieval():
 
 @frontend.route('/clubreg', methods=['GET'])
 def clubreg():
-    #getinfo()
     return render_template("clubreg.html")
 
 @frontend.route('/clubreg', methods=['POST'])
@@ -46,17 +37,66 @@ def getinfo():
     department = request.form['division']
     objective = request.form['Objective']
 
-    ind = int(department)
-    departments = ["Culture", "Performing Art", "Creative Arts", "Band Music", "Vocal Music", "Instrumental Music", "Society", "Religion", "Ball Sport", "Life Sport", "Science & Engineering", "Liberal Arts"]
-
     insert_stmt = (
     "INSERT INTO club (Name, MeetingHours, ManagerID, Location, Objective, Dname) VALUES (%s, %s, %s, %s, %s, %s)"
     )
-    data = (name, hours, '00000', location, objective, departments[ind - 1])
+    data = (name, hours, '00000', location, objective, department)
 
     cur.execute(insert_stmt, data)
     db.commit()
     return render_template("index.html")
+
+@frontend.route('/newmember', methods=['GET'])
+def memberreg():
+    clubname = (request.args.get('clubname'))
+    return render_template("newmember.html", clubname = clubname)
+
+@frontend.route('/newmember', methods=['POST'])
+def newmember():
+    clubname = request.form['clubname']
+    studentid = request.form['sid']
+    select_stmt = (
+        "SELECT * FROM student"
+    )
+    cur.execute(select_stmt)
+    students = cur.fetchall()
+    here = False
+    for student in students:
+        if(student[1] == studentid):
+            here = True
+            break
+
+    if(not(here)):
+        #student id is not there
+        return render_template("newmember.html", clubname=clubname, sid=studentid, err="Unregistered Student ID.")
+
+    here = False
+    select_stmt = (
+        "SELECT * FROM member"
+    )
+    cur.execute(select_stmt)
+    members = cur.fetchall()
+
+
+    for member in members:
+        if(member[0] == studentid):
+            if(member[1] == clubname):
+                here = True
+                break
+
+    if(here):
+        return render_template("newmember.html", clubname=clubname, sid=studentid, err="Student already registered.")
+
+    insert_stmt = (
+        "INSERT INTO member (SID, Club) VALUES (%s, %s)"
+        )
+
+    data = (studentid, clubname)
+    cur.execute(insert_stmt)
+    db.commit()
+
+    return render_template("index.html")
+
 
 @frontend.route('/division')
 def division():

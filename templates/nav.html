@@ -14,14 +14,20 @@
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
           <a class="dropdown-item" href="/division">Divisions</a>
-          <a class="dropdown-item" href="#">Something else here</a>
+          <hr>
+          {% for div in divs %}
+            <a class= "dropdown-item" href='/clubretrieval?div={{div[0]}}'>{{div[0]}}</a>
+          {%endfor%}
         </div>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="/clubreg">Club Registration</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/newevent">New Event</a>
+        <a class="nav-link" href="/newmember">Member Registration</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/newevent">Event Registration</a>
       </li>
     </ul>
   </div>
