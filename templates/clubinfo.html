@@ -1,15 +1,77 @@
 {%- extends "base.html" %}
 
 {% block content %}
-  <div class "container">
-    <h2> {{clubname}} </h2>
-     <div class = "container">
-     	{{division}}<br>
-     	{{Objective}}<br>
-     	{{hours}}<br>
-     	{% for event in events %}
-        	<th>{{event[0]}}</th>
-        {%endfor%}
-      </div>
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  .grid-container {
+    display: grid;
+    grid-template-columns: auto auto;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 2px;
+  }
+
+  .grid-item {
+      background-color: #2196F3;
+      border: 1px solid rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      font-size: 24px;
+      font-family: 'Raleway',sans-serif;
+      text-align: center;
+    }
+    .container{
+      text-align: center;
+    }
+h1 {
+  color: #f2f2f2; background: #ff4a4a; font-size: 75px; line-height: 74px; font-weight: 700;
+  margin: 0 5px 24px; float: left; padding: 10px; margin: 0 5px 24px;
+  font-family: 'Libre Baskerville', serif;
+}
+
+p {
+  color: white;
+  font-style: bold;
+}
+</style>
+</head>
+<body>
+  <div class = "container">
+    <div class = "row">
+    <div class="col-md-4">
+        <p> place holder </p>
+    </div>
+    <div class="col-md-4">
+      <h1> {{clubname}} </h1>
+    </div>
+    </div>
   </div>
-{%- endblock %}
+     <div class = "grid-container">
+       <div class = "grid-item">
+         <h2><b> Club Information </b></h2>
+     	   <p><b>{{division}}</b></p>
+     	   <p><b>{{Objective}}</b></p>
+     	   <p><b>{{hours}}</b></p>
+      </div>
+      <div class = "grid-item">
+        <h2><b> Manager Information </b></h2>
+      	  <p><b>Manager: {{admin[2]}}</b></p>
+      	  <p><b>Contact: {{admin[1]}}</b></p>
+      </div>
+      </div>
+       <div class = "container">
+         <div class = "container" height = 100px> <hr> </div>
+         <div class="row">
+           <div class="col-md-12">
+             <h2> Events </h2>
+           </div>
+           {%for event in events %}
+           <div class="col-md-12">
+               <h3>{{event[0]}}</h3>
+             </div>
+           </div>
+           {%endfor%}
+         </div>
+</body>
+</html>
+{% endblock %}
