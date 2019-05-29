@@ -291,7 +291,6 @@ def clubinfo():
     division = info[0][5]
     Objective = info[0][4]
     hours = info[0][1]
-    adminId = info[0][3]
 
     select_stmt1 = (
         "CREATE VIEW events AS SELECT EventID FROM hostclub where Club='%s'" %(clubname, )
