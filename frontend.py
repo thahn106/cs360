@@ -77,7 +77,6 @@ def login():
 
         raise Exception('Invalid password')
     except Exception as e:
-        print("jottoshibal")
         error = str(e)
 
     return render_template('login.html', error = error)
@@ -225,6 +224,8 @@ def division():
 @frontend.route('/clubretrieval', methods=['GET'])
 def clubretrieval():
     div = (request.args.get('div'))
+
+    print(div)
     try:
         select_stmt = (
             "SELECT * FROM club where Dname='%s'" %(div, )
@@ -290,6 +291,7 @@ def clubinfo():
     division = info[0][5]
     Objective = info[0][4]
     hours = info[0][1]
+    adminId = info[0][3]
 
     select_stmt1 = (
         "CREATE VIEW events AS SELECT EventID FROM hostclub where Club='%s'" %(clubname, )
@@ -307,7 +309,35 @@ def clubinfo():
     event1 = cur.fetchall()
     print(event1)
     cur.execute(delete_stmt)
-    return render_template("clubinfo.html", club = club, clubname= clubname, division = division, Objective = Objective, hours = hours, events = event1)
+
+    select_stmt1 = (
+        "CREATE VIEW manager AS SELECT ManagerID FROM club where Name='%s'" %(clubname, )
+    )
+    select_stmt2 = (
+        "CREATE VIEW managersid AS SELECT SID, Pnumber FROM admin INNER JOIN manager ON manager.ManagerID = admin.ID"
+    )
+    select_stmt3 = (
+        "SELECT * FROM managersid NATURAL JOIN student"
+    )
+
+    delete_stmt = (
+        "DROP VIEW IF EXISTS manager"
+    )
+    delete_stmt2 = (
+        "DROP VIEW IF EXISTS managersid"
+    )
+
+    cur.execute(delete_stmt)
+    cur.execute(delete_stmt2)
+    cur.execute(select_stmt1)
+    cur.execute(select_stmt2)
+    cur.execute(select_stmt3)
+    manager = cur.fetchone()
+    print(manager)
+    cur.execute(delete_stmt)
+    cur.execute(delete_stmt2)
+
+    return render_template("clubinfo.html", club = club, clubname= clubname, division = division, Objective = Objective, hours = hours, events = event1, admin= manager)
 
 
 @frontend.route('/newevent')
