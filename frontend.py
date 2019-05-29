@@ -488,7 +488,7 @@ def clubinfo():
         "CREATE VIEW manager AS SELECT ManagerID FROM club where Name='%s'" %(clubname, )
     )
     select_stmt2 = (
-        "CREATE VIEW managersid AS SELECT SID, Pnumber FROM admin INNER JOIN manager ON manager.ManagerID = admin.ID"
+        "CREATE VIEW managersid AS SELECT SID, Pnumber, Email FROM admin INNER JOIN manager ON manager.ManagerID = admin.ID"
     )
     select_stmt3 = (
         "SELECT * FROM managersid NATURAL JOIN student"
