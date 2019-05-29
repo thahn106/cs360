@@ -8,6 +8,8 @@ from hashlib import md5
 
 import os
 import datetime
+from datetime import datetime
+from datetime import timedelta
 import pymysql
 import sqlalchemy
 
@@ -211,43 +213,115 @@ def newevent_post():
     date = request.form['date']
     location = request.form['location']
     description = request.form['description']
+    divname = request.form['divname']
 
     print(clubname)
+    div = False
+    if(clubname == ""):
+        div = True
+
+    print(div)
+
+    if(not div):
+        select_stmt = (
+            "SELECT ManagerID FROM club where Name='%s'"%(clubname, )
+        )
+        cur.execute(select_stmt)
+        admin = cur.fetchone()[0]
+        print(admin)
+
+        try:
+            if 'username' in session:
+                user = session['username']
+
+            if  user == admin:
+                count_stmt = (
+                    "SELECT COUNT(*) FROM event"
+                )
+                cur.execute(count_stmt)
+                count = str(cur.fetchone()[0])
+                while(len(count) < 8):
+                    count = "0" + count;
+
+                insert_stmt = (
+                    "INSERT INTO event VALUES (%s, %s, %s, %s, %s, %s)"
+                )
+                data = (count, eventname, clubname, date, location, description)
+                cur.execute(insert_stmt, data)
+                insert_stmt = (
+                    "INSERT INTO hostclub VALUES (%s, %s)"
+                )
+                data = (count, clubname)
+                cur.execute(insert_stmt, data)
+                db.commit()
+        except pymysql.OperationalError:
+            return render_template("index.html", err="Unknown error.")
+
+        return redirect(url_for('frontend.clubinfo', club=clubname))
+    else:
+        select_stmt = (
+            "SELECT HeadID FROM division where Name='%s'"%(divname, )
+        )
+        cur.execute(select_stmt)
+        admin = cur.fetchone()[0]
+        print(admin)
+
+        try:
+            if 'username' in session:
+                user = session['username']
+
+            if  user == admin:
+                count_stmt = (
+                    "SELECT COUNT(*) FROM event"
+                )
+                cur.execute(count_stmt)
+                count = str(cur.fetchone()[0])
+                while(len(count) < 8):
+                    count = "0" + count;
+
+                insert_stmt = (
+                    "INSERT INTO event VALUES (%s, %s, %s, %s, %s, %s)"
+                )
+                data = (count, eventname, divname, date, location, description)
+                cur.execute(insert_stmt, data)
+                insert_stmt = (
+                    "INSERT INTO hostdiv VALUES (%s, %s)"
+                )
+                data = (count, divname)
+                cur.execute(insert_stmt, data)
+                db.commit()
+        except pymysql.OperationalError:
+            return render_template("index.html", err="Unknown error.")
+
+        return redirect(url_for('frontend.clubretrieval', div=divname))
+
+@frontend.route('/events')
+def view_events():
+
+
+    dt = datetime.now() - timedelta(days = 1)
+    dt = str(dt)
     select_stmt = (
-        "SELECT ManagerID FROM club where Name='%s'"%(clubname, )
+        "SELECT * FROM event where DateTime >= '%s'" %(dt,)
     )
     cur.execute(select_stmt)
-    admin = cur.fetchone()[0]
-    print(admin)
+    events = cur.fetchall()
+    events = list(events)
+    print(events)
 
-    try:
-        if 'username' in session:
-            user = session['username']
+    for i in range(1, len(events)):
+        j = i-1
+        next = events[i]
+        nxt_element = events[i][3]
+# Compare the current element with next one
 
-        if  user == admin:
-            count_stmt = (
-                "SELECT COUNT(*) FROM event"
-            )
-            cur.execute(count_stmt)
-            count = str(cur.fetchone()[0])
-            while(len(count) < 8):
-                count = "0" + count;
+        while (events[j][3] > nxt_element) and (j >= 0):
+            events[j+1] = events[j]
+            j=j-1
+        events[j+1] = next
 
-            insert_stmt = (
-                "INSERT INTO event VALUES (%s, %s, %s, %s, %s, %s)"
-            )
-            data = (count, eventname, clubname, date, location, description)
-            cur.execute(insert_stmt, data)
-            insert_stmt = (
-                "INSERT INTO hostclub VALUES (%s, %s)"
-            )
-            data = (count, clubname)
-            cur.execute(insert_stmt, data)
-            db.commit()
-    except pymysql.OperationalError:
-        return render_template("index.html", err="Unknown error.")
+    return render_template("events.html", events = events)
 
-    return redirect(url_for('frontend.clubinfo', club=clubname))
 
 @frontend.route('/newmember', methods=['GET'])
 @login_required
@@ -326,14 +400,14 @@ def clubretrieval():
         print(clubs)
 
         select_stmt1 = (
-        "CREATE VIEW events AS SELECT 'EventID' FROM hostdiv where Division='%s'" %(div, )
+            "CREATE VIEW events AS SELECT Event FROM hostdiv where Division='%s'" %(div, )
         )
         select_stmt2 = (
-        "SELECT Name FROM event NATURAL JOIN events"
+            "SELECT EventID, EventName FROM event INNER JOIN events ON events.Event = event.EventID"
         )
 
         delete_stmt = (
-        "DROP VIEW events"
+            "DROP VIEW events"
         )
 
         lock_acquire(cur=cur, str="events")
@@ -368,10 +442,12 @@ def eventinfo():
     cur.execute(select_stmt)
     info = cur.fetchall()
     eventname = info[0][1]
+    clubname = info[0][2]
     datetime = info[0][3]
     location = info[0][4]
+    description = info[0][5]
 
-    return render_template("eventinfo.html", event = event, eventname= eventname, datetime = datetime, location = location)
+    return render_template("eventinfo.html", event = event, eventname= eventname, clubname = clubname, datetime = datetime, location = location, description = description)
 
 @frontend.route('/clubinfo', methods=['GET'])
 def clubinfo():

@@ -1,6 +1,7 @@
 {%- extends "base.html" %}
 
 {% block content %}
+
 <style>
   .h1{
     margin: auto;
@@ -9,18 +10,19 @@
     padding: 10px;
   }
 </style>
+
 <body>
   <div class = "container">
-  <div class = "row" style = "text-align: center; padding-left: 30px">
-      <h1> {{clubname}} </h1>
+  <div class = "row" style = "text-align: center; padding-left: 30px; padding-top: 30px; padding-bottom: 30px;">
+      <h1 style = "color: #272140"> {{clubname}} </h1>
   </div>
   </div>
   <div class = "container">
-  <div class = "row">
+  <div class = "row" >
     <div class = "col-md-1">
     </div>
-  <div class = "col-md-4" style = "text-align: center;">
-     <div class = "card" style = "text-align: center; width: 18rem;">
+  <div class = "col-md-4" style = "align-items: center;">
+     <div class = "card border-dark mb-3" style = "padding-top: 20px; padding-bottom: 20px; text-align: center; background-color: #F9F1D3;  ">
        <h5 class="card-title"> Club Information</h5>
        <div class="card-text">
          <p><b>{{division}}</b></p>
@@ -32,7 +34,7 @@
     <div class = "col-md-2">
     </div>
     <div class = "col-md-4">
-       <div class = "card" style = "text-align: center; width: 18rem;">
+       <div class = "card border-dark mb-3" style = "padding-top: 20px; padding-bottom: 20px; text-align: center; background-color: #D3F9DE;">
          <h5 class="card-title"> Manager Information</h5>
          <div class="card-text">
             <p><b>Manager: {{admin[2]}}</b></p>
@@ -45,27 +47,30 @@
       </div>
     </div>
        <div class = "container">
-          <div class = "container" height = 100px> <hr> </div>
+          <div class = "row" style = "padding-top: 5px;"><div class = "col-md-12"><hr> </div> </div>
          <div class="row">
-           <div class="col-md-12">
-             <h2> Events </h2>
-           <ul class = "list-group" style = "border: dark-md3 width: 75%">
+           <div class = "col-md-3"></div>
+           <div class="col-md-6" style = "padding-top: 10px; padding-bottom: 10px; ">
+             <h2 style = "text-align: center;"> Events </h2>
+           <ul class = "list-group" style = "border: dark-md3;">
            {%for event in events %}
-           <li class="list-group-item">
+           <li class="list-group-item" style = "border: dark-md3;">
                <a href = 'eventinfo?event={{event[0]}}''>{{event[1]}}</a>
              </li>
            {%endfor%}
            </ul>
          </div>
+         <div class = "col-md-3"></div>
         </div>
         {%if memberlist%}
-          <div class = "container" height = 100px> <hr> </div>
+          <div class = "row" style = "padding-top: 5px;"><div class = "col-md-12"><hr> </div> </div>
           <div class="row">
-            <div class="col-md-12">
-              <h2> Members </h2>
-          <ul class = "list-group">
-          {%for member in memberlist %}
-          <li class="list-group-item">
+            <div class="col-md-3"></div>
+             <div class="col-md-6" style = "padding-top: 10px; padding-bottom: 10px;">
+              <h2 style = "text-align: center;"> Members </h2>
+          <ul class = "list-group" style = "border: dark-md3;">
+            {%for member in memberlist %}
+          <li class="list-group-item" style = "border: dark-md3;">
               <h5>{{member[0]}}</h5>
             </li>
           {%endfor%}
@@ -75,6 +80,5 @@
       </div>
       </div>
       {%endif%}
-
 </body>
 {% endblock %}

@@ -8,13 +8,24 @@
       <div class="row">
         <div class="col-md-4">
           <label for="validationCustom04">Club Name</label>
-          <select name= "clubname" class="form-control selectpicker" data-live-search="true" required>
+          <select name= "clubname" class="form-control selectpicker">
             <option value="">Open this select menu</option>
             {% for club in myclubs %}
               <option value = "{{club[0]}}" data-tokens="{{club[0]}}">{{club[0]}}</option>
             {% endfor %}
+              <option value = None>None</option>
           </select>
         </div>
+        <div class="col-md-4">
+          <label for="validationCustom05">Division Name</label>
+          <select name= "divname" class="form-control selectpicker">
+            <option value="">Open this select menu</option>
+            {% for div in divs %}
+              <option value = "{{div[0]}}" data-tokens="{{div[0]}}">{{div[0]}}</option>
+            {% endfor %}
+              <option value = None>None</option>
+          </select>
+          </div>
       </div>
       <div class="row">
         <div class="col-md-4">
