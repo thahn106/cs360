@@ -159,6 +159,51 @@ def getinfo():
     db.commit()
     return render_template("index.html")
 
+@frontend.route('/newevent', methods=['GET'])
+@login_required
+def newevet_get():
+    return render_template("newevent.html")
+
+@frontend.route('/newevent', methods=['POST'])
+@login_required
+def newevent_post():
+    clubname = request.form['clubname']
+    date = request.form['date']
+
+    print(clubname)
+    select_stmt = (
+        "SELECT ManagerID FROM club where Name='%s'"%(clubname, )
+    )
+    cur.execute(select_stmt)
+    admin = cur.fetchone()[0]
+    print(admin)
+
+    if 'username' in session:
+        user = session['username']
+
+    if  user == admin:
+        count_stmt = (
+            "SELECT COUNT(*) FROM event"
+        )
+        cur.execute(count_stmt)
+        count = str(cur.fetchone()[0])
+        while(len(count) < 8):
+            count = "0" + count;
+
+        insert_stmt = (
+            "INSERT INTO event VALUES (%s, %s, %s, %s)"
+        )
+        data = (count, clubname, date, admin)
+        cur.execute(insert_stmt, data)
+        insert_stmt = (
+            "INSERT INTO hostclub VALUES (%s, %s)"
+        )
+        data = (count, clubname)
+        cur.execute(insert_stmt, data)
+        db.commit()
+
+    return redirect(url_for('frontend.clubinfo', club=clubname))
+
 @frontend.route('/newmember', methods=['GET'])
 @login_required
 def newmember_get():
@@ -210,7 +255,6 @@ def newmember_post():
     db.commit()
 
     return render_template("index.html")
-
 
 @frontend.route('/division')
 def division():
@@ -266,6 +310,7 @@ def clubretrieval():
 @frontend.route('/eventinfo', methods=['GET'])
 def eventinfo():
     event = (request.args.get('event'))
+    print(event)
     select_stmt = (
         "SELECT * FROM event where Name='%s'" %(event, )
     )
@@ -291,6 +336,7 @@ def clubinfo():
     division = info[0][5]
     Objective = info[0][4]
     hours = info[0][1]
+    admin = info[0][3]
 
     select_stmt1 = (
         "CREATE VIEW events AS SELECT EventID FROM hostclub where Club='%s'" %(clubname, )
@@ -335,14 +381,21 @@ def clubinfo():
     print(manager)
     cur.execute(delete_stmt)
     cur.execute(delete_stmt2)
+    user=""
+    if 'username' in session:
+        user = session['username']
 
-    return render_template("clubinfo.html", club = club, clubname= clubname, division = division, Objective = Objective, hours = hours, events = event1, admin= manager)
+    memberlist=""
+    if  user == admin:
+        select_stmt = (
+            "SELECT * FROM member WHERE Club='%s'"%(clubname, )
+        )
+        cur.execute(select_stmt)
+        memberlist = cur.fetchall()
+        if not memberlist:
+            memberlist = [(None,0)]
+    return render_template("clubinfo.html", club = club, clubname= clubname, division = division, Objective = Objective, hours = hours, events = event1, memberlist=memberlist, admin = manager)
 
-
-@frontend.route('/newevent')
-@login_required
-def newevent():
-    return render_template('newevent.html')
 
 # Our index-page just shows a quick explanation. Check out the template
 # "templates/index.html" documentation for more details.
