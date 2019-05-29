@@ -290,6 +290,7 @@ def clubinfo():
     division = info[0][5]
     Objective = info[0][4]
     hours = info[0][1]
+    admin = info[0][3]
 
     select_stmt1 = (
         "CREATE VIEW events AS SELECT EventID FROM hostclub where Club='%s'" %(clubname, )
@@ -307,7 +308,19 @@ def clubinfo():
     event1 = cur.fetchall()
     print(event1)
     cur.execute(delete_stmt)
-    return render_template("clubinfo.html", club = club, clubname= clubname, division = division, Objective = Objective, hours = hours, events = event1)
+    user=""
+    if 'username' in session:
+        user = session['username']
+    memberlist=""
+    if  user == admin:
+        select_stmt = (
+            "SELECT * FROM member WHERE Club='%s'"%(clubname, )
+        )
+        cur.execute(select_stmt)
+        memberlist = cur.fetchall()
+        if not memberlist:
+            memberlist = [(None,0)]
+    return render_template("clubinfo.html", club = club, clubname= clubname, division = division, Objective = Objective, hours = hours, events = event1, memberlist=memberlist)
 
 
 @frontend.route('/newevent')
