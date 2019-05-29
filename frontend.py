@@ -7,13 +7,40 @@ from functools import wraps
 from hashlib import md5
 
 import os
-import pymysql
 import datetime
+import pymysql
+import sqlalchemy
 
 frontend = Blueprint('frontend', __name__)
 
-db = pymysql.connect(host = "34.85.123.237", user = "root", passwd = "password", db = "kaistclubdb")
-cur = db.cursor()
+db = "Uninitialized"
+cur= "Uninitialized"
+
+
+def init(local = False):
+    global db
+    global cur
+    if (local):
+        print("Local init")
+        db = pymysql.connect(host = "34.85.123.237", user = "root", passwd = "password", db = "kaistclubdb")
+    else:
+        print("Server init")
+        engine = sqlalchemy.create_engine(
+            sqlalchemy.engine.url.URL(
+                drivername='mysql+pymysql',
+                username='root',
+                password='password',
+                database='kaistclubdb',
+                query={
+                    'unix_socket': '/cloudsql/{}'.format('effective-relic-240011:asia-northeast1:kaistclubdb')
+                }
+            ),
+            # ... Specify additional properties here.
+            # ...
+        )
+        db = engine.raw_connection()
+
+    cur = db.cursor()
 
 def login_required(f):
     @wraps(f)
