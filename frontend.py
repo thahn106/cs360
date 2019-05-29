@@ -206,8 +206,11 @@ def newevet_get():
 @frontend.route('/newevent', methods=['POST'])
 @login_required
 def newevent_post():
+    eventname = request.form['eventname']
     clubname = request.form['clubname']
     date = request.form['date']
+    location = request.form['location']
+    description = request.form['description']
 
     print(clubname)
     select_stmt = (
@@ -231,9 +234,9 @@ def newevent_post():
                 count = "0" + count;
 
             insert_stmt = (
-                "INSERT INTO event VALUES (%s, %s, %s, %s)"
+                "INSERT INTO event VALUES (%s, %s, %s, %s, %s, %s)"
             )
-            data = (count, clubname, date, admin)
+            data = (count, eventname, clubname, date, location, description)
             cur.execute(insert_stmt, data)
             insert_stmt = (
                 "INSERT INTO hostclub VALUES (%s, %s)"
@@ -360,13 +363,13 @@ def eventinfo():
     event = (request.args.get('event'))
     print(event)
     select_stmt = (
-        "SELECT * FROM event where Name='%s'" %(event, )
+        "SELECT * FROM event where EventID='%s'" %(event, )
     )
     cur.execute(select_stmt)
     info = cur.fetchall()
-    eventname = info[0][0]
-    datetime = info[0][1]
-    location = info[0][2]
+    eventname = info[0][1]
+    datetime = info[0][3]
+    location = info[0][4]
 
     return render_template("eventinfo.html", event = event, eventname= eventname, datetime = datetime, location = location)
 
@@ -388,18 +391,22 @@ def clubinfo():
         "CREATE VIEW events AS SELECT EventID FROM hostclub where Club='%s'" %(clubname, )
     )
     select_stmt2 = (
-        "SELECT Name FROM event NATURAL JOIN events"
+        "SELECT * FROM event NATURAL JOIN events"
     )
 
     delete_stmt = (
-        "DROP VIEW events"
+        "DROP VIEW IF EXISTS events"
     )
 
+    lock_acquire(cur, 'event')
+    cur.execute(delete_stmt)
     cur.execute(select_stmt1)
     cur.execute(select_stmt2)
     event1 = cur.fetchall()
     print(event1)
+    print("PRINT")
     cur.execute(delete_stmt)
+    lock_release(cur, 'event')
 
     select_stmt1 = (
         "CREATE VIEW manager AS SELECT ManagerID FROM club where Name='%s'" %(clubname, )
@@ -417,16 +424,16 @@ def clubinfo():
     delete_stmt2 = (
         "DROP VIEW IF EXISTS managersid"
     )
-
+    lock_acquire(cur, 'event')
     cur.execute(delete_stmt)
     cur.execute(delete_stmt2)
     cur.execute(select_stmt1)
     cur.execute(select_stmt2)
     cur.execute(select_stmt3)
     manager = cur.fetchone()
-    print(manager)
     cur.execute(delete_stmt)
     cur.execute(delete_stmt2)
+    lock_release(cur, 'event')
     user=""
     if 'username' in session:
         user = session['username']
