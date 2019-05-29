@@ -18,7 +18,6 @@ from synch import *
 frontend = Blueprint('frontend', __name__)
 
 db = "Uninitialized"
-cur= "Uninitialized"
 
 
 def init(local = False):
@@ -44,8 +43,6 @@ def init(local = False):
         )
         db = engine.raw_connection()
 
-    cur = db.cursor()
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -56,6 +53,7 @@ def login_required(f):
 
 @frontend.context_processor
 def update_dict():
+    cur = db.cursor()
     select_stmt = (
         "SELECT * FROM division"
         )
@@ -68,6 +66,7 @@ def update_dict():
         select_stmt = ("SELECT * FROM club WHERE ManagerID= '%s'" %(user))
         cur.execute(select_stmt)
         clubs = cur.fetchall()
+    cur.close()
     return dict(divs=divs, user=user, myclubs=clubs)
 
 @frontend.route('/')
@@ -76,6 +75,7 @@ def index():
 
 @frontend.route('/login', methods=['GET', 'POST'])
 def login():
+    cur = db.cursor()
     if 'username' in session:
         return redirect(url_for('frontend.index'))
     error = None
@@ -104,12 +104,13 @@ def login():
             print(row[0])
             if md5(PW).hexdigest() == row[0]:
                 session['username'] = request.form['username']
+                cur.close()
                 return redirect(url_for('frontend.index'))
 
         raise Exception('Invalid password')
     except Exception as e:
         error = str(e)
-
+    cur.close()
     return render_template('login.html', error = error)
 
 @frontend.route('/logout')
@@ -123,6 +124,7 @@ def signup_get():
 
 @frontend.route('/signup', methods=['POST'])
 def signup_post():
+    cur = db.cursor()
     print(request.form)
     ID = request.form['ID']
     PW = request.form['PW']
@@ -137,6 +139,7 @@ def signup_post():
     data = (ID, md5(PW).hexdigest(), Pnumber, SID, email)
     cur.execute(insert_stmt, data)
     db.commit()
+    cur.close()
     return render_template("signup.html")
 
 @frontend.route('/newstudent', methods=['GET'])
@@ -147,6 +150,7 @@ def newstudent_get():
 @frontend.route('/newstudent', methods=['POST'])
 @login_required
 def newstudent_post():
+    cur = db.cursor()
     print(request.form)
     Name = request.form['Name']
     SID = request.form['SID']
@@ -157,6 +161,7 @@ def newstudent_post():
     data = (Name, SID, Department)
     cur.execute(insert_stmt, data)
     db.commit()
+    cur.close()
     return render_template("newstudent.html")
 
 
@@ -173,6 +178,7 @@ def clubreg_get():
 @frontend.route('/clubreg', methods=['POST'])
 @login_required
 def clubreg_post():
+    cur = db.cursor()
     print(request.form)
     name = request.form['clubname']
     hours = request.form['clubhours']
@@ -186,6 +192,7 @@ def clubreg_post():
         cur.execute(select_stmt)
         clubs = cur.fetchall()
         if clubs:
+            cur.close()
             return render_template("clubreg.html", err="Club %s already registered."%(name,))
 
         insert_stmt = (
@@ -195,9 +202,12 @@ def clubreg_post():
 
         cur.execute(insert_stmt, data)
         db.commit()
+        cur.close()
         return render_template("index.html", message="Club registered successfully!")
     except pymysql.OperationalError:
+        cur.close()
         return render_template("index.html", err="Unknown error.")
+    cur.close()
     return render_template("index.html")
 
 @frontend.route('/newevent', methods=['GET'])
@@ -208,6 +218,7 @@ def newevet_get():
 @frontend.route('/newevent', methods=['POST'])
 @login_required
 def newevent_post():
+    cur = db.cursor()
     eventname = request.form['eventname']
     clubname = request.form['clubname']
     date = request.form['date']
@@ -217,7 +228,7 @@ def newevent_post():
 
     print(clubname)
     div = False
-    if(clubname == ""):
+    if(clubname == "" or clubname == "None"):
         div = True
 
     print(div)
@@ -255,8 +266,9 @@ def newevent_post():
                 cur.execute(insert_stmt, data)
                 db.commit()
         except pymysql.OperationalError:
+            cur.close()
             return render_template("index.html", err="Unknown error.")
-
+        cur.close()
         return redirect(url_for('frontend.clubinfo', club=clubname))
     else:
         select_stmt = (
@@ -291,14 +303,15 @@ def newevent_post():
                 cur.execute(insert_stmt, data)
                 db.commit()
         except pymysql.OperationalError:
+            cur.close()
             return render_template("index.html", err="Unknown error.")
 
+        cur.close()
         return redirect(url_for('frontend.clubretrieval', div=divname))
 
 @frontend.route('/events')
 def view_events():
-
-
+    cur = db.cursor()
     dt = datetime.now() - timedelta(days = 1)
     dt = str(dt)
     select_stmt = (
@@ -310,16 +323,14 @@ def view_events():
     print(events)
 
     for i in range(1, len(events)):
-        j = i-1
         next = events[i]
+        j = i-1
         nxt_element = events[i][3]
-# Compare the current element with next one
-
         while (events[j][3] > nxt_element) and (j >= 0):
             events[j+1] = events[j]
             j=j-1
         events[j+1] = next
-
+    cur.close()
     return render_template("events.html", events = events)
 
 
@@ -331,6 +342,7 @@ def newmember_get():
 @frontend.route('/newmember', methods=['POST'])
 @login_required
 def newmember_post():
+    cur = db.cursor()
     clubname = request.form['clubname']
     studentid = request.form['sid']
     try:
@@ -346,6 +358,7 @@ def newmember_post():
                 break
 
         if(not(here)):
+            cur.close()
             return render_template("newmember.html", clubname=clubname, sid=studentid, err="Unregistered Student ID.")
 
         here = False
@@ -371,24 +384,28 @@ def newmember_post():
         data = (studentid, clubname)
         cur.execute(insert_stmt, data)
         db.commit()
-
+        cur.close()
         return render_template("newmember.html",message="Member added.")
 
     except pymysql.OperationalError:
+        cur.close()
         return render_template("index.html", err="Unknown error.")
 
 @frontend.route('/division')
 def division():
+    cur = db.cursor()
     select_stmt = (
         "SELECT * FROM division"
         )
     cur.execute(select_stmt)
     divs = cur.fetchall()
+    cur.close()
     return render_template("division.html", divs = divs)
 
 @frontend.route('/clubretrieval', methods=['GET'])
 def clubretrieval():
     div = (request.args.get('div'))
+    cur = db.cursor()
 
     print(div)
     try:
@@ -418,7 +435,7 @@ def clubretrieval():
         print(event1)
         cur.execute(delete_stmt)
         lock_release(cur=cur, str="events")
-
+        cur.close()
         return render_template("clubretrieval.html", div = div, clubs = clubs, events = event1)
     except pymysql.OperationalError:
         try:
@@ -428,12 +445,15 @@ def clubretrieval():
             cur.execute(select_stmt)
             clubs = cur.fetchall()
             print(clubs)
+            cur.close()
             return render_template("clubretrieval.html", div = div, clubs = clubs)
         except pymysql.OperationalError:
+            cur.close()
             return render_template("index.html")
 
 @frontend.route('/eventinfo', methods=['GET'])
 def eventinfo():
+    cur = db.cursor()
     event = (request.args.get('event'))
     print(event)
     select_stmt = (
@@ -447,10 +467,12 @@ def eventinfo():
     location = info[0][4]
     description = info[0][5]
 
+    cur.close()
     return render_template("eventinfo.html", event = event, eventname= eventname, clubname = clubname, datetime = datetime, location = location, description = description)
 
 @frontend.route('/clubinfo', methods=['GET'])
 def clubinfo():
+    cur = db.cursor()
     club = (request.args.get('club'))
     select_stmt = (
         "SELECT * FROM club where Name='%s'" %(club, )
@@ -523,6 +545,8 @@ def clubinfo():
         memberlist = cur.fetchall()
         if not memberlist:
             memberlist = [(None,0)]
+
+    cur.close()
     return render_template("clubinfo.html", club = club, clubname= clubname, division = division, Objective = Objective, hours = hours, events = event1, memberlist=memberlist, admin = manager)
 
 
