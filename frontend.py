@@ -11,6 +11,8 @@ import datetime
 import pymysql
 import sqlalchemy
 
+from synch import *
+
 frontend = Blueprint('frontend', __name__)
 
 db = "Uninitialized"
@@ -163,12 +165,12 @@ def eventretrieval():
 
 @frontend.route('/clubreg', methods=['GET'])
 @login_required
-def clubreg():
+def clubreg_get():
     return render_template("clubreg.html")
 
 @frontend.route('/clubreg', methods=['POST'])
 @login_required
-def getinfo():
+def clubreg_post():
     print(request.form)
     name = request.form['clubname']
     hours = request.form['clubhours']
@@ -177,13 +179,23 @@ def getinfo():
     objective = request.form['Objective']
     username = session['username'];
 
-    insert_stmt = (
-    "INSERT INTO club (Name, MeetingHours, ManagerID, Location, Objective, Dname) VALUES (%s, %s, %s, %s, %s, %s)"
-    )
-    data = (name, hours, username, location, objective, department)
+    try:
+        select_stmt = ("SELECT * FROM club WHERE Name= '%s'" %(name,))
+        cur.execute(select_stmt)
+        clubs = cur.fetchall()
+        if clubs:
+            return render_template("clubreg.html", err="Club %s already registered."%(name,))
 
-    cur.execute(insert_stmt, data)
-    db.commit()
+        insert_stmt = (
+        "INSERT INTO club (Name, MeetingHours, ManagerID, Location, Objective, Dname) VALUES (%s, %s, %s, %s, %s, %s)"
+        )
+        data = (name, hours, username, location, objective, department)
+
+        cur.execute(insert_stmt, data)
+        db.commit()
+        return render_template("index.html", message="Club registered successfully!")
+    except pymysql.OperationalError:
+        return render_template("index.html", err="Unknown error.")
     return render_template("index.html")
 
 @frontend.route('/newevent', methods=['GET'])
@@ -205,29 +217,32 @@ def newevent_post():
     admin = cur.fetchone()[0]
     print(admin)
 
-    if 'username' in session:
-        user = session['username']
+    try:
+        if 'username' in session:
+            user = session['username']
 
-    if  user == admin:
-        count_stmt = (
-            "SELECT COUNT(*) FROM event"
-        )
-        cur.execute(count_stmt)
-        count = str(cur.fetchone()[0])
-        while(len(count) < 8):
-            count = "0" + count;
+        if  user == admin:
+            count_stmt = (
+                "SELECT COUNT(*) FROM event"
+            )
+            cur.execute(count_stmt)
+            count = str(cur.fetchone()[0])
+            while(len(count) < 8):
+                count = "0" + count;
 
-        insert_stmt = (
-            "INSERT INTO event VALUES (%s, %s, %s, %s)"
-        )
-        data = (count, clubname, date, admin)
-        cur.execute(insert_stmt, data)
-        insert_stmt = (
-            "INSERT INTO hostclub VALUES (%s, %s)"
-        )
-        data = (count, clubname)
-        cur.execute(insert_stmt, data)
-        db.commit()
+            insert_stmt = (
+                "INSERT INTO event VALUES (%s, %s, %s, %s)"
+            )
+            data = (count, clubname, date, admin)
+            cur.execute(insert_stmt, data)
+            insert_stmt = (
+                "INSERT INTO hostclub VALUES (%s, %s)"
+            )
+            data = (count, clubname)
+            cur.execute(insert_stmt, data)
+            db.commit()
+    except pymysql.OperationalError:
+        return render_template("index.html", err="Unknown error.")
 
     return redirect(url_for('frontend.clubinfo', club=clubname))
 
@@ -241,47 +256,49 @@ def newmember_get():
 def newmember_post():
     clubname = request.form['clubname']
     studentid = request.form['sid']
-    select_stmt = (
-        "SELECT * FROM student"
-    )
-    cur.execute(select_stmt)
-    students = cur.fetchall()
-    here = False
-    for student in students:
-        if(student[1] == studentid):
-            here = True
-            break
-
-    if(not(here)):
-        #student id is not there
-        return render_template("newmember.html", clubname=clubname, sid=studentid, err="Unregistered Student ID.")
-
-    here = False
-    select_stmt = (
-        "SELECT * FROM member"
-    )
-    cur.execute(select_stmt)
-    members = cur.fetchall()
-
-
-    for member in members:
-        if(member[0] == studentid):
-            if(member[1] == clubname):
+    try:
+        select_stmt = (
+            "SELECT * FROM student"
+        )
+        cur.execute(select_stmt)
+        students = cur.fetchall()
+        here = False
+        for student in students:
+            if(student[1] == studentid):
                 here = True
                 break
 
-    if(here):
-        return render_template("newmember.html", clubname=clubname, sid=studentid, err="Student already registered.")
+        if(not(here)):
+            return render_template("newmember.html", clubname=clubname, sid=studentid, err="Unregistered Student ID.")
 
-    insert_stmt = (
-    "INSERT INTO member (SID, Club) VALUES (%s, %s)"
+        here = False
+        select_stmt = (
+            "SELECT * FROM member"
         )
+        cur.execute(select_stmt)
+        members = cur.fetchall()
 
-    data = (studentid, clubname)
-    cur.execute(insert_stmt, data)
-    db.commit()
+        for member in members:
+            if(member[0] == studentid):
+                if(member[1] == clubname):
+                    here = True
+                    break
 
-    return render_template("index.html")
+        if(here):
+            return render_template("newmember.html", clubname=clubname, sid=studentid, err="Student already registered.")
+
+        insert_stmt = (
+        "INSERT INTO member (SID, Club) VALUES (%s, %s)"
+            )
+
+        data = (studentid, clubname)
+        cur.execute(insert_stmt, data)
+        db.commit()
+
+        return render_template("newmember.html",message="Member added.")
+
+    except pymysql.OperationalError:
+        return render_template("index.html", err="Unknown error.")
 
 @frontend.route('/division')
 def division():
@@ -315,11 +332,15 @@ def clubretrieval():
         delete_stmt = (
         "DROP VIEW events"
         )
+
+        lock_acquire(cur=cur, str="events")
+
         cur.execute(select_stmt1)
         cur.execute(select_stmt2)
         event1 = cur.fetchall()
         print(event1)
         cur.execute(delete_stmt)
+        lock_release(cur=cur, str="events")
 
         return render_template("clubretrieval.html", div = div, clubs = clubs, events = event1)
     except pymysql.OperationalError:
@@ -348,8 +369,6 @@ def eventinfo():
     location = info[0][2]
 
     return render_template("eventinfo.html", event = event, eventname= eventname, datetime = datetime, location = location)
-#cur.execute(insert_stmt, data)
-
 
 @frontend.route('/clubinfo', methods=['GET'])
 def clubinfo():
