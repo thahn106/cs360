@@ -1,0 +1,85 @@
+{%- extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <h2>Event Registration</h2>
+  <div class="container">
+    <form class="needs-validation" novalidate method = "post">
+      <div class="row">
+        <div class="col-md-4">
+          <label for="validationCustom04">Club Name</label>
+          <select name= "clubname" class="form-control selectpicker">
+            <option value="">Open this select menu</option>
+            {% for club in myclubs %}
+              <option value = "{{club[0]}}" data-tokens="{{club[0]}}">{{club[0]}}</option>
+            {% endfor %}
+              <option value = None>None</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="validationCustom05">Division Name</label>
+          <select name= "divname" class="form-control selectpicker">
+            <option value="">Open this select menu</option>
+            {% for div in divs %}
+              <option value = "{{div[0]}}" data-tokens="{{div[0]}}">{{div[0]}}</option>
+            {% endfor %}
+              <option value = None>None</option>
+          </select>
+          </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <label for="validationCustom01">Event Name</label>
+          <input type="text" name="eventname" class="form-control" id="validationCustom01" placeholder="Regular Concert" required>
+        </div>
+        <div class='col-md-4'>
+          <label for="example-date-input">Date</label>
+          <input type="date" name="date" class="form-control"  value="2019-05-30" id="example-date-input">
+        </div>
+        <div class="col-md-4">
+          <label for="validationCustom03">Location</label>
+          <input type="text" name="location" class="form-control" id="validationCustom03" placeholder="E11 101" required>
+        </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12 mb-3">
+      <label for="description">Event Description</label>
+      <textarea name= "description" class="form-control" rows="5" id="description"></textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Submit form</button>
+    </form>
+</div>
+
+  <script>
+  // Example starter JavaScript for disabling form submissions if there are invalid fields
+  (function() {
+  'use strict';
+  window.addEventListener('load', function() {
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.getElementsByClassName('needs-validation');
+    // Loop over them and prevent submission
+    var validation = Array.prototype.filter.call(forms, function(form) {
+      form.addEventListener('submit', function(event) {
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  }, false);
+  })();
+  </script>
+</div>
+{%- endblock %}
+
+{%- block messages %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+  <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+{%- endblock %}

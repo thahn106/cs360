@@ -1,44 +1,67 @@
-{# ``base.html`` is the template all our other templates derive from. While
-   Flask-Bootstrap ships with its own base, it is good form to create a custom
-   one for our app, as it allows customizing some aspects.
+{% block doc -%}
+<!DOCTYPE html>
+<html{% block html_attribs %}{% endblock html_attribs %}>
+{%- block html %}
+  <head>
+    {%- block head %}
+      <title>{% block title %}KAIST Clubs Homepage{% endblock %}</title>
+      {%- block metas %}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      {%- endblock metas %}
 
-   Deriving from bootstap/base.html gives us a basic page scaffoling.
+      {%- block styles %}
+      <!-- Bootstrap -->
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 
-   You can find additional information about template inheritance at
+      {%- endblock styles %}
+    {%- endblock head %}
+  </head>
+  <body{% block body_attribs %}{% endblock body_attribs %}>
+    {% block body -%}
 
-   http://jinja.pocoo.org/docs/templates/#template-inheritance
-#}
-{%- extends "bootstrap/base.html" %}
+    {% block navbar %}
+      {% include 'nav.html' with context %}
+    {%- endblock navbar %}
+    {%- if message %}
+      <div class="alert alert-primary alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {%- endif %}
+    {%- if err %}
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+      <strong>Error!</strong> {{ err }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {%- endif %}
 
-{# We also set a default title, usually because we might forget to set one.
-   In our sample app, we will most likely just opt not to change it #}
-{% block title %}KAIST Clubs Homepage{% endblock %}
 
-{# While we are at it, we also enable fixes for legacy browsers. First we
-   import the necessary macros: #}
-{% import "bootstrap/fixes.html" as fixes %}
+    <main role="main" class="flex-shrink-0">
+    {% block content -%}
+    {%- endblock content %}
+    </main>
+    <div class="footer navbar navbar-light bg-light fixed-bottom">
+      <div class="container">
+        <span class="text-muted">CS360 Spring 2019 - Team 8</span>
+      </div>
+    </div>
 
-{# Then, inside the head block, we apply these. To not replace the header,
-   ``super()`` is used: #}
-{% block head %}
-{{super()}}
+    {% block scripts %}
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    {%- endblock scripts %}
 
-{#- Docs: http://pythonhosted.org/Flask-Bootstrap/macros.html#fixes
-   The sample application already contains the required static files. #}
-{{fixes.ie8()}}
-{%- endblock %}
+    {%- endblock body %}
+  </body>
+{%- endblock html %}
+</html>
+{% endblock doc -%}
 
-{# Adding our own CSS files is also done here. Check the documentation at
-   http://pythonhosted.org/Flask-Bootstrap/basic-usage.html#available-blocks
-   for an overview. #}
-{% block styles -%}
-    {{super()}}  {# do not forget to call super or Bootstrap's own stylesheets
-                    will disappear! #}
-    <link rel="stylesheet" type="text/css"
-          href="{{url_for('static', filename='sample-app.css')}}">
-{% endblock %}
-
-{# Finally, round things out with navigation #}
-{% block navbar %}
+{#{% block navbar %}
 {{nav.frontend_top.render()}}
-{% endblock %}
+{% endblock %}#}

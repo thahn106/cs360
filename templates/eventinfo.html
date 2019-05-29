@@ -1,0 +1,22 @@
+{%- extends "base.html" %}
+
+{% block content %}
+  <div class "container">
+    <div class = "row" style = "padding-bottom: 50px">
+      </div>
+    <div class = "row">
+    <div class = "col-md-3">
+      </div>
+    <div class = "col-md-6">
+    <div class="jumbotron" style = "text-align: center; background-color: #13FEEA">
+      <h1> {{eventname}} </h1>
+      <p style = "font-size: 18px; color: #FE5513;">Host: {{clubname}}</p>
+      <p style = "font-size: 18px; color: #FE5513;">Date: {{datetime}}</p>
+      <p style = "font-size: 18px; color: #FE5513;">Location: {{location}}</p>
+      <p style = "font-size: 18px; color: #FE5513;">{{description}}</p>
+      <a class="btn btn-primary btn-lg" href="/events" role="button" style = "background-color: red">Go to Event List</a>
+    </div>
+    </div>
+  </div>
+  </div>
+{%- endblock %}

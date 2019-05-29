@@ -3,13 +3,16 @@ from flask_bootstrap import Bootstrap
 
 frontend = Blueprint('frontend', __name__)
 
+
 @frontend.route("/")
 def index():
+    
     return render_template('index.html')
 
 def create_app():
     app = Flask(__name__)
-    Bootstrap(app)
+    bootstrap = Bootstrap(app)
+    
     return app
 
 if __name__ == "__main__":
